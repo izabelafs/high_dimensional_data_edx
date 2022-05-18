@@ -1,0 +1,355 @@
+\documentclass[3p,review,12pt,times,sort&compress,hyperref]{elsarticle}%preprint,twocolumn
+\journal{Computational Biology and Chemistry}
+\usepackage[utf8]{inputenc}
+% \usepackage{float}
+\usepackage{graphicx,color,subcaption}
+\usepackage{amsmath}
+\usepackage{xr} 
+\usepackage{xcolor}
+\newcommand{\Trimer}[2]{$\genfrac{}{}{0pt}{}{\text{#1}}{\text{#2}}$}
+\newcommand{\Atop}[2]{\genfrac{}{}{0pt}{}{\text{#1}}{\text{#2}}}
+\newcommand{\TODO}[1]{\textcolor{red}{(#1)}}
+\newcommand{\Align}[2]{\genfrac{}{}{0pt}{}{^{5'}\text{#1}^{3'}}{^{3'}\text{#2}^{5'}}}
+\externaldocument{./supplementary/supp-vargibbs-lna}
+
+%%%Please don't disable any packages in the preamble, as this may cause the template to display incorrectly.%%%
+
+%% `Elsevier LaTeX' style
+%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\usepackage{hyperref}
+%https://tex.stackexchange.com/questions/258758/bibliography-style-elsarticle-num-names-with-doi-and-hyperlinks-but-no-explicit
+\makeatletter
+\providecommand{\doi}[1]{%
+  \begingroup
+    \let\bibinfo\@secondoftwo
+    \urlstyle{rm}%
+    \href{http://dx.doi.org/#1}{%
+      doi:\discretionary{}{}{}%
+      \nolinkurl{#1}%
+    }%
+  \endgroup
+}
+\makeatother
+
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Improved Nearest-Neighbour parameters for single LNA modified probes}
+
+%% Group authors per affiliation:
+
+\author[mymainaddress,mysecondaryaddress]{Izabela Ferreira}%izabelaferreira13@gmail.com
+
+\author[mythirdaddress]{Kira Astakhova}
+
+\author[mymainaddress]{Gerald Weber\corref{mycorrespondingauthor}}
+\cortext[mycorrespondingauthor]{Corresponding author}
+\ead{gweberbh@gmail.com}
+
+\address[mymainaddress]{Departamento de F\'{\i}sica, Universidade Federal de Minas Gerais, Belo Horizonte-MG, Brazil.}
+\address[mysecondaryaddress]{Programa Interunidades de P\'{o}s-Gradua{\c c}\~{a}o em Bioinform\'{a}tica, Universidade Federal de Minas Gerais, Belo Horizonte-MG, Brazil}
+\address[mythirdaddress]{Department of Chemistry, Technical University of Denmark, Kemitorvet, Bygning 207, 2800 Kgs. Lyngby, Denmark}
+
+\date{\today}
+
+\begin{abstract}
+The Nearest-Neighbour model is widely applied in the prediction of thermodynamic properties of nucleic acids due to its simplicity and the availability of parameters. One such application is in the study of LNA-modified probes. However, due to the limitations of the method and the lack of measurements containing the modification, the resulting predictions often achieve poor accuracy. Here, we have applied a melting temperature optimization method that bypasses some parameter extraction steps in a data set containing 306 modified-LNA sequences covering all possible single LNA modifications, achieving a final prediction accuracy of 1~$^\circ$C. Enthalpies and entropies of modified base pairs compensate each other in terms of stability, indicating a subtle balance between both, which suggests the Gibbs free-energy more reasonable to quantify the stability of the modifications.
+\end{abstract}
+
+\begin{keyword}
+DNA mesoscopic models, Nearest-Neighbour parameters, Locked Nucleic Acids (LNA)
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}
+
+Locked nucleic acid, LNA, is the name of the modified monomer derived from the insertion of a methylene bridge between the 2$'$-oxygen and the 4$'$-carbon of the ribose sugar, which locks the backbone in a C3-endo/N conformation, mimicking a RNA helix~\cite{koshkin98,obika98,wang99}. 
+This conformation change is suggested to induce a favourable entropic variation in its vicinity~\cite{hughesman11b}, increasing the overall thermodynamic helix stability, which achieves an increase in the melting temperature of up to 10~$^\circ$C per added modification in some studies~\cite{obika99,koshkin98b}. 
+Additionally it was shown to improve mismatch discrimination and compatibility with either DNA or RNA complementary strands~\cite{braasch03,you06},
+as well as to exhibit resistance to nuclease degradation~\cite{wahlestedt00}, chemical stability, convenient synthesis using standards reagents and coupling protocols, and minimal non-specific interactions with nucleic acid binding proteins~\cite{mallikaratchy13}.
+
+Such properties are highly desirable in numerous applications and for this reason, LNAs have been widely applied. 
+For example, as in polymerase chain reaction (PCR)~\cite{fontanilles20,barkallah16,efrati11} and  loop-mediated isothermal amplification (LAMP) detection~\cite{bakthavathsalam18}, small interfering RNA (siRNA)~\cite{braasch03,elmen05} and miRNA silencing approaches~\cite{kalinina21}. 
+Moreover, is broadly used in antisense oligonucleotides (ASOs)~\cite{bagheri21,zhang21,kim20e,lim20,emmrich09}, aptamers~\cite{schmidt04,darfeuille06,wojtyniak20} and DNAzymes~\cite{hanpanich20,vester02,jakobsen07}. 
+The applications are boundless and theoretical efforts to model and predict melting temperatures of LNA probes have been developed over the years, though not very accurate.
+
+There are some theoretical works aiming to predict the melting temperatures of LNA modified probes by applying some modifications to the widely used nearest-neighbour model (NN) in different situations, such as single LNAs~\cite{mctigue04}, mismatches~\cite{you06,owczarzy11}, tandem modifications~\cite{hughesman11b,fakhfakh15}, among others~\cite{obika98,wang99,yan12,papargyri19}. 
+More recently, we also have modelled single LNA modifications through a different approach, which considers hydrogen bonds and stacking interactions as the main source of duplex stability~\cite{ferreira21b}. 
+We have found stronger hydrogen bonding as the source of the stability, contrarily to what was previously suggested by other studies. Such results are also in agreement with previous parameterizations of a smaller data set containing LNA modifications~\cite{domljanovic20}, from where we could not fully describe single LNA modifications. Nonetheless, there is a current demand of improved parameters for LNA-modified base-pairs to the NN model, widely used to predict melting temperature of duplexes in biomolecular approaches. Such improvent may generate more accurate temperature predictions, which are required to tailor applications such as PCR and LAMP.
+
+Early proposed in \citeyear{borer74}, the NN model attributes the helix stability only to its nearest-neighbour doublets and due to its simplicity and effectiveness the model has been widely applied in molecular biology and in oligonucleotide chemistry applications.  
+Commonly, to obtain the NN parameters ($\Delta P_{NN}$, with $P=H$ or $S$) a set of linear equations is written were each equation represents the total enthalpy or entropy ($\Delta P^{i}_{Tot}$) for a given sequence $i$. 
+For this reason, firstly is necessary to obtain the total variations which require the knowledge of the total enthalpy and entropy ($\Delta P^{i}_{Tot}$), for each sequence in the set. 
+This is usually achieved by curve fitting the melting curve or from a linear regression of $T_m^{-1}$ $\times$ log $Ct$. 
+Both methods, curve-fitting or the linear regression, introduce an additional uncertainty into the resulting parameters. Or in the worst case, such total thermodynamic parameters may not be available.
+
+Our group developed a melting temperature optimization (MTO) that does not require the total parameters $\Delta P^{i}_{Tot}$ to achieve the $\Delta P_{NN}$~\cite{weber15}. 
+Substitutively, applies a simple fit to the $\Delta P_{NN}$ which better describes the measured $T_m$. 
+This method has successfully achieved thermodynamic predictions for DNA~\cite{weber15}, dsRNA~\cite{weber15,ferreira19} and DNA:RNA hybrids~\cite{barbosa19} achieving a smaller uncertainty and an improved predictive power.
+
+Here, we applied the NN model in conjunction with the MTO method to a combined set of melting temperatures derived from Refs.\citenum{mctigue04,you06,fakhfakh15}, covering all possible single LNA modifications. 
+% We have parameterized before this data set using the Peyrard-Bishop model, which describes the helix through its hydrogen-bonds and stacking interactions~\cite{weber09}. Contrarily with the previous assumptions, we have found stronger hydrogen-bonding and derived a complete parameterization 
+We have obtained optimized NN parameters, which achieves an overall reduction in the $\Delta T_m$ to 1~$^\circ$C, smaller than the deviation obtained by the currently available NN parameters~\cite{mctigue04}. 
+In contrast with the previous propositions, we get a compensatory effect between enthalpies and entropies which suggests that the stabilizing effect conceded by LNA incorporation depends on a subtle balance of both. 
+As also expected, the Gibbs free energy of a LNA monomer is usually smaller than its canonical analog, making it more reasonable to address the LNA modified probes stability through its value.
+
+\section{Methods}
+
+\subsection{Nearest-neighbour (NN) model}
+\label{NN-model}
+
+For a given sequence with measured, $\Delta H_i^{\text{tot}}$ and $\Delta S_i^{\text{tot}}$, the contribution for each consecutive base-pair is subdivided into:
+\begin{eqnarray}
+\Delta H_i^{\text{tot}}&=&\sum_\alpha n_{i\alpha}\Delta H_\alpha+\sum_{c}n_{i}^c\Delta H^c\\
+\Delta S_i^{\text{tot}}&=&\sum_\alpha n_{i\alpha}\Delta S_\alpha+\sum_{c}n_{i}^c\Delta S^c
+\end{eqnarray}
+where  $n_{i\alpha}$ are the occurrences of nearest-neighbour types $\alpha$ in the $i$th sequence.
+$\Delta H^c$ and $\Delta S^c$ are typically correction factors such as symmetry correction ($\Delta S^{\text{symm}}$) or
+terminal initiation ($\Delta H^{\text{term}}$)~\cite{santalucia96,santalucia98}.
+
+Given the total total entropy and enthalpy variations, $\Delta H_i^{\text{tot}}$ and $\Delta S_i^{\text{tot}}$, for a sequence~$i$
+the melting temperature can now be calculated from
+\begin{equation}
+T'_i=\frac{\Delta H_i^{\text{tot}}}{\Delta S_i^{\text{tot}}+R \ln \frac{C_t}{fC_0}}
+\label{eq-T}
+\end{equation}
+where $f=1$ for self-complementary sequences and $f=4$ otherwise.
+$C_t$ is the species concentration in $\mu$M and
+$C_0=1$~$\mu$M is a reference concentration.
+
+The Gibbs free energy parameters $\Delta G_i$ at 37$^\circ$C are given by
+\begin{equation}
+\Delta G_i^{37^\circ \text{C}}= \Delta H_i -(273.15+37) \Delta S_i
+\label{eq-deltag}
+\end{equation}
+
+\subsubsection{Notation}
+
+The following examples illustrate the notation of nearest-neighbour types $\alpha$. 
+For the remainder of this work, LNA modifications will always be preceded by a plus sign and marked in $\textbf{bold}$.
+\begin{equation}
+\Align{TA}{AT} \rightarrow \alpha=\text{TApAT} \quad \Align{C\textbf{+A}}{GT} \rightarrow \alpha=\text{CGp$\textbf{+A}$T}
+\end{equation}
+note that due to symmetry considerations CGp$\textbf{+A}$T is equivalent to T$\textbf{+A}$pGC.
+Here, given two equivalent symmetric possibilities, such as CGp$\textbf{+A}$T and T$\textbf{+A}$pGC, we will always use the one with alphabetical precedence for clarity, in this case this would be CGp$\textbf{+A}$T.
+
+The NN model requires 20 NN parameters to fully represent canonical DNA, that is, 10 enthalpy and 10 entropy parameters. 
+In addition to these 20 parameters, 64 new parameters are added to the minimization to represent the individual enthalpies and entropies for each NN. 
+Tab.~\ref{stab:NN-occurrences} show the number of occurrences for each NN in the data set.
+
+% \subsection{Notation}
+% 
+% \label{notation-lna}
+% 
+% The set contains 33 new NN parameters which add up 33 enthalpy and 33 entropy parameters to the final set.
+% 
+% As an example, if we consider the thermodynamic parameters needed to represent the following sequence in the NN model:
+% \begin{displaymath}
+% \Atop{$5'$-CTAACG\textbf{+G}ATGC-$3'$}{$3'$-GAT\textbf{+T}GCCTACG-$5'$}
+% \end{displaymath}
+% 
+% It will require the NNs: CGpTA, TApAT, ATpA\textbf{+T}, A\textbf{+T}pCG, CGpGC, GCp\textbf{+G}C, \textbf{+G}CpAT, ATpTA, TApGC and GCpCG.
+
+\subsection{Melting temperature set}
+
+We used the published melting temperatures for sequences measured at high salt concentration (1021~mM Na$^+$) collected from the Refs.~\citenum{mctigue04,you06,fakhfakh15}, which totalizes 306 sequences, ranging between 8 to 23 base-pairs in length. 
+The sequences used in this work contain only single LNA modifications, that is, a LNA:DNA base pair, and measured by UV melting. 
+For such reasons, data sets with tandem LNA modifications and measured using attached fluorophores such as from Refs.~\citenum{hughesman11b,owczarzy11} were not used. 
+As an additional criteria, each LNA:DNA nearest-neighbour configuration should be present in multiple sequences.
+
+Although the NN model performs well in sets containing different strand concentrations, we used the strand concentration of 2~$\mu$M, used in Ref.~\cite{you06} as reference. 
+For the remaining sequences from Refs.~\cite{mctigue04,fakhfakh15}, we recalculated the melting temperatures using their respective reported total enthalpies and entropies.
+
+\subsection{Melting temperature optimization}
+\label{minimization}
+
+The main step of the MTO method is the minimization of the total squared difference between the predicted~$T'_i$ and measured~$T_i$:
+\begin{equation}
+\chi^2=\sum_i \left[T_i-T'_i(\{p\}_k)\right]^2
+\label{eq-chi2}
+\end{equation}
+where $T_i$ is the measured temperature for the $i$th sequence.
+$T'_i$ is the corresponding predicted temperature resulting from the set of tentative 
+parameters $\{p\}_k$:
+\begin{equation*}
+\{p\}_k=\{p_{k1},p_{k2},p_{k3}\},
+\end{equation*}
+A parameter optimization is carried out in several rounds of global minimizations, which in turn is composed of a certain amount of rounds of local minimizations.
+
+In addition we use the average prediction difference
+\begin{equation}
+\langle \Delta T\rangle=\frac{1}{N}\sum_{i=1}^N\left|T_i-T'_i(\{p\}_k)\right|.
+\label{eq-DeltaTm}
+\end{equation}
+as a simple comparative parameter.
+
+\subsubsection{Seed parameters}
+
+In all optimizations the $i$th initial parameter $p_i$ is varied randomly in an interval
+\begin{equation}
+p_i  \in  [(1 - f)s_i, (1 + f)s_i]
+\end{equation}
+that is, within a fraction $\pm f$ of a seed value $s_i$. 
+For instance $f=0.3$ which results in the interval $[0.7s_i, 1.3s_i]$.
+
+The core of the minimization is a Nelder-Mead simplex minimization~\cite{press88} which will map the surface generated by the $N$ parameters contained in the minimized set of sequences. 
+
+\subsubsection{Initial minimization --- IM}
+
+First, we start the minimization by allowing parameters containing modifications to vary in the interval defined by the seed. 
+Each NN is described by enthalpy and entropy, which totalizes 84 parameters. 
+Previously calculated parameters~\cite{weber15} for canonical NN are kept constant, for this reason only the 64 parameters involving LNA are minimized. 
+For the remainder of this work, we kept constant during the minimization the initiation factors derived by \citet{weber15}. 
+The minimization was repeated 3000 times and we calculate the average within these minimizations. 
+Before this first minimization, using only the NN for canonical DNA, the data set had as quality factors, $\chi^2$=170696$^\circ$C$^2$ and a $\langle \Delta T \rangle$=18.87$^\circ$C. After, it reaches a final $\chi^2$=675.53$^\circ$C$^2$ and a $\langle \Delta T \rangle$=1.19$^\circ$C.
+
+\subsubsection{DNA/LNA minimization}
+
+We also allow the canonical parameters to vary together with the modified parameters, adding up 20 new parameters in the minimization. The results from IM minimization were used as a new fixed initial set of parameters. 
+The minimization proceed once more for 3000 times and are averaged as the final result. 
+It reaches a $\chi^2$=473.23$^\circ$C$^2$ and a $\langle \Delta T \rangle$=0.935$^\circ$C.
+
+\subsubsection{EM}
+
+Lastly, to simulate the experimental error associated with the temperature measurement a new minimization is carried out, this time changing the temperature by small random amounts such the standard deviation between the original set and the optimized set approaches the declared experimental uncertainty. 
+Here, the results from RM minimization are used as a new fixed initial set of parameters.
+The highest standard deviation on the measurements is reported as 0.8 $^\circ$ C~\cite{fakhfakh15}. 
+The final results reached a slight reduction to $\chi^2$=471.92$^\circ$C$^2$ and keep $\langle \Delta T \rangle$=0.931$^\circ$C. 
+The error bars that are shown in Fig.~\ref{all-harm-enthalpy-dna} and Fig.~\ref{all-harm-entropy-dna} are the standard deviation within those minimizations. 
+
+\subsection{Validation}
+
+\subsubsection{1021~mM Na$^+$}
+
+For a validation set we used 67 sequences containing single LNA modifications measured at high salt concentration (1021~mM Na$^+$)  from Refs.~\citenum{hughesman11b,fakhfakh15}. 
+Sequences bearing LNA at the ends were not included as terminal effects may play a part~\cite{ferreira15} and were not considered in the minimized data set. 
+The final quality parameters of the prediction for the validation set using the optimized NN parameters are $\chi^2$=263.06$^\circ$C$^2$ and $\langle \Delta T \rangle$=1.52$^\circ$C. 
+
+\subsubsection{121~mM Na$^+$}
+
+We also collected 26 sequences measured at medium salt concentration (121~mM Na$^+$) from several references~\cite{koshkin98,koshkin98b,wang99,yan12,domljanovic20,ferreira21b} whose satisfies the criteria established for the minimized data set at high salt concentration. 
+Predictions using the improved NN parameters were corrected to a medium salt concentration using the salt correction to DNA sequences proposed by \citet{owczarzy04}. 
+The final quality parameters of the prediction for the validation set are $\chi^2$=561.39$^\circ$C$^2$ and $\langle \Delta T \rangle$=3.64$^\circ$C. 
+
+\section{Results and Discussion}
+
+Calculated enthalpies and entropies for each NN of the minimization round EM are shown in Figs.~\ref{all-harm-enthalpy-dna} and Fig.~\ref{all-harm-entropy-dna}. 
+For comparison, we also show the previously calculated NN~\cite{weber15} in grey lines and displaying the same symbol as their analogues. 
+
+\begin{figure}[tbp]
+\centering
+    \includegraphics[width=\textwidth]{graphics/mr2-dna-ee/all-harm-enthalpy}
+\caption[Average calculated enthalpy parameters for DNA+LNA:DNA NNs]{Average calculated enthalpy parameters for LNA modified and canonical nearest-neighbors. Error bars were calculated in the EM minimization round. (a)~for ATpTA (boxes), ATpAT (circles) and TApAT (bullets); (b) for CGpCG (bullets), CGpCG (boxes) and GCpCG (circles); (c) for ATpCG (boxes) and GCpAT (circles); (d) for ATpGC (boxes)
+and CGpAT (circles). For comparison, we show the published enthalpy parameters for canonical DNA~\cite{weber15} as grey dashed lines. The shaded region shows the range of all possible enthalpy parameters for canonical DNA~\cite{weber15}, with the minimum being the enthalpy parameter for ATpTA and maximum for GCpCG (the same on all panels). LNA monomers are separated by colour.}
+\label{all-harm-enthalpy-dna}
+\end{figure}
+
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=\textwidth]{graphics/mr2-dna-ee/all-harm-entropy}
+\caption[Average calculated entropy parameters for DNA+LNA:DNA NNs]{Average calculated entropy parameters for LNA modified and canonical nearest-neighbors. Error bars were calculated in the EM minimization round.  (a) for ATpTA (boxes), ATpAT (circles) and TApAT (bullets); (b) for CGpCG (bullets), CGpCG (boxes) and GCpCG (circles); (c) for ATpCG (boxes) and GCpAT (circles); (d) for ATpGC (boxes)
+and CGpAT (circles). For comparison, we show the published entropy parameters for canonical DNA~\cite{weber15} as grey dashed lines. The shaded region shows the range of all possible entropy parameters for canonical DNA~\cite{weber15}, with the minimum being the entropy parameter for ATpTA and maximum for GCpCG (the same on all panels). LNA monomers are separated by colour.}
+\label{all-harm-entropy-dna}
+\end{figure}
+
+Early thermodynamic studies of LNA have reported a positive variation in the entropy and negligible changes in the enthalpy of LNA modified base-pairs and the magnitude of this change seems to be related to the amount of modifications inserted~\cite{obika98,koshkin98,christensen01}. 
+The stabilizing effect has been suggested as structural and the ability of locally change the conformation of the helix is accounted as a entropic~\cite{petersen02,petersen00} or either enthalpic~\cite{hughesman11b,owczarzy11} effect in some studies. 
+It is also suggested an increase in enthalpy at the first LNA addition and subsequent improvements by a favourable enthalpic change~\cite{owczarzy11}.
+
+In general, our results point out an increase in a series of NNs for both, enthalpy and entropy. 
+Contrastingly, some parameters have shown a pronounced reduction, suggesting a strong destabilization at their vicinity. 
+However, the results show a compensatory trend between enthalpy and entropy parameters as was observed previously for RNA~\cite{ferreira19}. 
+The effect is naturally compensatory and such trend is expected as there is a strict correlation between these two physical quantities through Eq.~\ref{eq-deltag} and was also previously related for canonical DNA~\cite{petruska95,starikov09}. 
+For this reason, we also calculated the Gibbs Free energy parameters at 37~$^\circ$C, $\Delta G_{37 ^\circ C}$ which are shown in Fig.~\ref{gibbs37}. 
+
+While there is a similar trend in the enthalpy and entropy parameters, it is clear the stabilization provided by LNA monomers in the change of the Gibbs free energy parameters and a combination of both, enthalpy and entropy is responsible for the effect~\cite{mctigue04}. 
+Still, some NNs are much more stable than others and except for GCpA$\textbf{+T}$ usually than their canonical analogues. 
+In fact, there is also a strong dependence on stabilization with the flanking neighbours~\cite{kaur06,mctigue04}.
+
+\begin{figure}[tbp]
+\centering
+    \includegraphics[width=\textwidth]{graphics/mr2-dna-ee/all-harm-gibbs37}
+\caption[Gibbs free energy parameters calculated at 37 $^\circ$C]{Gibbs free energy parameters calculated at 37 $^\circ$C for each NN in the dataset. Error bars were calculated in the EM minimization round. (a) for ATpTA (boxes), ATpAT (circles) and TApAT (bullets); (b) for CGpCG (bullets), CGpCG (boxes) and GCpCG (circles); (c) for ATpCG (boxes) and GCpAT (circles); (d) for ATpGC (boxes)
+and CGpAT (circles). For comparison, we show the calculated Gibbs parameters at 37 $^\circ$C for canonical DNA~\cite{weber15} as grey dashed lines. The shaded region shows the range of all possible Gibbs parameters for canonical DNA~\cite{weber15}, with the minimum being the Gibbs parameter for TApAT and maximum for GCpCG (the same on all panels). LNA monomers are separated by colour.}
+\label{gibbs37}
+\end{figure}
+
+Despite the uncertainty in the literature if whether the effect is enthalpic or entropically driven, it is more reasonable treat such changes through the Gibbs free-energy as the latter accounts for both quantities. 
+A comparative of the performance of optimized NN parameters and the currently available~\cite{mctigue04} is shown in Fig.\ref{fig:tm-corr}. 
+Here, we have obtained a smaller overall $\langle \Delta T_m\rangle$ than the published data by using the MTO method. 
+Therefore we are able to achieve more accurate melting temperature predictions, which is essential in applications such as PCR, genotyping and diagnostic approaches.
+
+Our initial aim was to derive an improved set of NN parameters for single LNA modifications, for this reason we kept out from the minimization procedure the sequences used to validate the model proposed by \citet{fakhfakh15}.
+We also added to the validation set sequences measured by differential scanning calorimetry (DSC) that were not included in the minimized data set\cite{hughesman11b}. 
+Therefore, we compare the measured and predicted melting temperature given by the optimized NN parameters in Fig.\ref{fig:tm-corr-val}a and the measured and predicted melting temperature given by the currently available NN parameters for LNA single modifications in Fig.\ref{fig:tm-corr-val}b. 
+There is a clear improvement in the temperature prediction when the optimized NN parameters are used as the majority of the points lie on the diagonal line (shown as black bullets) and are within 1~$^\circ$ C of the measured temperature.
+
+Fig.\ref{fig:tm-corr-val}c and Fig.\ref{fig:tm-corr-val}d show a comparative of the melting temperatures measured and predicted using the improved NN parameters and the currently available\cite{mctigue04}, respectively. 
+It is noteworthy that the measurement accuracy is reduced considerably in the validation set measured at medium salt concentration. 
+This may indicate a more limited applicability of such salt corrections in LNA modified sequences, which in some cases over or underestimate the final temperature prediction. 
+In our previous work considering LNA modifications we also applied a salt correction, which have shown more accurate predictions than the obtained here applying the same salt correction~\cite{ferreira21b}, which may relate to more robust parameters than the used by the NN model. 
+Still, the overall predictions for the minimized NN parameters in high salt concentration show 
+more accurate predictions than the currently available parameters\cite{mctigue04}.
+
+\begin{figure}[tbp]
+\centering
+    \includegraphics[width=0.7\textwidth]{tm-corr}
+\caption{Comparative scatter plot of the experimentally measured and predicted melting temperatures. a) Self-prediction using the NN optmised parameters. b) Using the NN parameters derived by \citet{mctigue04}. The closer the
+points are to the diagonal dashed lines, the better is the prediction quality. Predictions are shown as bullets if they are within 1$^\circ$~C of the experimental points, otherwise they are shown as red crosses. Data points are horizontally shifted to the right for clarity, and the resulting average temperature deviation $\langle \Delta T_m \rangle$ is calculated from Eq.(~\ref{eq-DeltaTm}).}
+\label{fig:tm-corr}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+    \includegraphics[width=0.7\textwidth]{tm-corr-val}
+\caption{Comparative scatter plot of the experimentally measured and predicted melting temperatures of the validation data sets, a) and c) Using the NN optimised parameters for the set measured at 1021~mM and 121~mM Na$^+$ (applying a salt correction~\cite{owczarzy04}), respectively. b) and d) Using the NN parameters derived by \citet{mctigue04}, for the set measured at 1021~mM and 121~mM Na$^+$ (applying a salt correction~\cite{owczarzy04}), respectively. The closer the
+points are to the diagonal dashed lines, the better is the prediction quality. Predictions are shown as bullets if they are within 1$^\circ$~C of the experimental points, otherwise they are shown as red crosses. Data points are horizontally shifted to the right for clarity, and the resulting average temperature deviation $\langle \Delta T_m \rangle$ is calculated from Eq.(~\ref{eq-DeltaTm}).}
+\label{fig:tm-corr-val}
+\end{figure}
+
+% Sugere que a estabilidade dos gapmers seria melhor mensurada com medições da energia livre, entretanto como são necessárias diversas medidas de Tm para recuperar a energia livre a partir da regressão ele conclui não ser uma opção e que a proposição de modelos de predição para o mesmo seja uma melhor opção. --Izabela 04h29min de 3 de junho de 2020 (-03)
+Tabs.~\ref{stab:calculated-enthalpies} and Tab.~\ref{stab:calculated-entropies} show the final minimized enthalpies and entropies and their respective standard deviations for the minimization round EM. 
+Supplementary Tab.~\ref{stab:dataset}--\ref{stab:val-121} show the respective measured and predicted melting temperatures for each sequence in the data set and the validation set.
+
+\section{Conclusion}
+
+Herein, we have applied a minimization method on the NN model parameters for single LNA modified sequences. 
+We have found a compensatory trend in enthalpy and entropy and for this reason, we suggest as a more reasonable quantity, the use of Gibbs free-energy to address the stability provided by such modifications. 
+The Gibbs free-energy have shown a favourable change in LNA monomers, although this is context-dependent and probe prediction must take the flanking neighbours and the overall sequence into consideration.
+The MTO method has provided us with a more accurate set of NN parameters to LNA single-modifications allowing us to predict any amount of single LNA modifications with an accuracy of 1$^\circ$~C, smaller than the already available parameters in the literature.
+
+\section{Data and software availability}
+
+All sequences, their respective melting temperatures and all calculated parameters are included in our updated software
+package (\url{https://bioinf.fisica.ufmg.br/software}) or as buildable packages in the OpenSuse repository (\url{https:/ build.opensuse.org/package/show/home:drgweber/VarGibbs})
+
+\texttt{VarGibbs} temperature prediction is also available in a graphic environment in the address (\url{https://bioinf.fisica.ufmg.br/app/comparetm.pl}) and is freely available.
+
+All results presented here can be verified with this software. 
+
+\section{Acknowledgements}
+
+This work was supported by Funda\c{c}\~ao de Amparo \`a Pesquisa do Estado de Minas Gerais (Fapemig);
+Conselho Nacional de Desenvolvimento Cient\'\i fico e Tecnol\'ogico (CNPq) and 
+Coordena\c c\~ao de Aperfei\c coamento de Pessoal de N\'\i vel Superior (Capes). 
+
+\section{Supporting Information}
+
+Supplementary Tab.~\ref{stab:NN-occurrences} show the number of modified and non-modified NN.
+Supplementary Tab.~\ref{stab:dataset} show the sequences used in the minimization and their respective measured and predicted temperature.
+Supplementary Tab.~\ref{stab:val-1021} and Tab.~\ref{stab:val-121} show the sequences used in the validation set and
+their respective measured and predicted temperature.
+Supplementary Tab.~\ref{stab:calculated-enthalpies} and Tab.~\ref{stab:calculated-entropies} show the calculated enthalpies and entropies for each NN in the data set, respectively.
+% Supplementary Fig.~\ref{sfig:tm-corr} show a scatter plot comparing the measured and predicted temperatures using the optmized parameters of minimization round EM.
+
+\section*{References}
+
+\bibliographystyle{elsarticle-num-names}
+\bibliography{complete-gbc}%,extra
+
+\end{document}

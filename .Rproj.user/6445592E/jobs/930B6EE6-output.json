@@ -1,0 +1,8 @@
+[1,"Installing 'rafalib' ...\n"]
+[1,"Retrieving 'https://cran.rstudio.com/bin/macosx/big-sur-arm64/contrib/4.1/rafalib_1.0.0.tgz' ...\n"]
+[1,"\tOK [downloaded 53.3 Kb in 0.2 secs]\n"]
+[1,"Installing rafalib [1.0.0] ...\n"]
+[1,"\tOK [installed binary]\n"]
+[1,"Moving rafalib [1.0.0] into the cache ...\n"]
+[1,"\tOK [moved to cache in 0.27 milliseconds]\n"]
+[2,"\n\n✔ Package 'rafalib' successfully installed.\n"]

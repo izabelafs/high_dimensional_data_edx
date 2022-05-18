@@ -1,0 +1,26 @@
+{
+    "id": "345A2ED1",
+    "path": "~/high_dimensional_data_edx/heatmap.R",
+    "project_path": "heatmap.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1650624924689.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "95,21",
+        "scrollLine": "92"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1650986973,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1650986973834,
+    "read_only": false,
+    "read_only_alternatives": []
+}
