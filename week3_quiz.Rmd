@@ -1,0 +1,340 @@
+---
+title: "Quiz week 3"
+author: "Izabela Silva"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Question: Conditional Expectations
+
+The heights dataset from the dslabs package (available from CRAN) contains self-reported heights (in inches) for male and female students from three Harvard Biostatistics classes:
+```{r}
+install.packages("dslabs")    
+library(dslabs)
+data(heights)
+head(heights)
+```
+
+For simplicity, round heights to the nearest inch:
+```{r}
+heights$height <- round(heights$height)
+```
+
+Calculate the conditional probability that a person 67 inches tall is female.
+
+```{r}
+cond <- heights$sex[heights$height == 67]
+sum(cond == "Female")/length(cond)
+```
+
+Calculate the conditional probability that a person is female for the vector of heights $hts = 60:80$. Make a plot of this conditional probability versus hts. Suppose you predict female for any height for which the conditional probability of being female $\text{Pr}(Y=Female|X=x)$ is > 0.5. What is the maximum height for which you predict a person is female?
+
+```{r}
+library(tidyverse)
+hts<-60:80
+heights$sex <- recode(heights$sex,Male = 0, Female = 1)
+pys<-sapply(hts,function(hts){
+mean(heights$sex[heights$height == hts])
+})
+plot(hts,pys,xlab="x",ylab="Probability (woman)")
+abline(h=0.5,col="red")
+abline(v=,col="blue")
+
+max(hts[pys>0.5])
+```
+
+##Assignment Setup
+The leukemiasEset contains 60 sets of bone marrow gene expression data from patients with one of the 4 main types of leukemia (ALL, AML, CLL, CML) as well as control patients without leukemia (NoL).
+
+Install and load the leukemiasEset data from the leukemiasEset Bioconductor package:
+
+```{r}
+BiocManager::install("leukemiasEset")    # install if needed
+library(leukemiasEset)
+data(leukemiasEset)
+```
+
+These data are stored in a container called an ExpressionSet. In future courses, we will learn how to work with ExpressionSets directly, but for now we can extract gene expression data as a matrix dat (features are rows, columns are samples):
+
+```{r}
+dat = exprs(leukemiasEset)
+```
+
+We can also create a vector noting which type of leukemia is present in each sample:
+
+```{r}
+leuk = leukemiasEset$LeukemiaType
+```
+
+## Question 1
+
+A. How many features are present in dat?
+B. How many samples are present in dat?
+
+```{r}
+dim(dat)
+``` 
+
+C. How many samples are from patients with AML?
+
+```{r}
+sum(leuk == "AML")
+```
+
+##Question 2
+Make an MDS plot of dat and color the points by leuk.
+
+```{r}
+y = dat - rowMeans(dat)
+s = svd(y)
+z = s$d * t(s$v)
+library(rafalib)
+mypar(1,1)
+plot(z[1,],z[2,],col=as.numeric(leuk))
+legend("topleft",levels(leuk),col=seq_along(leuk),pch=1)
+d = dist(t(dat))
+mds = cmdscale(d)
+```
+
+Which of the following are TRUE?
+Select ALL that apply.
+
+
+CLL samples tend to have higher values of mds[,2] than ALL
+
+ x CLL samples tend to have higher values of mds[,1] than ALL
+
+The samples with the highest values of mds[,1] are all CML
+
+The samples with the lowest values of mds[,2] are all NoL
+
+All five of the leukemia types form clear, non-overlapping clusters.
+
+x At a glance, CML samples are more similar to NoL samples than to other leukemias.
+
+##Question 3
+1 point possible (graded)
+Run hierarchical clustering on this data with the hclust() function with default parameters to cluster the columns. Create a dendrogram and use the leukemia type leuk as labels.
+
+Suppose you want to cut the tree so that there are 5 clusters. Which of these heights would be the best cutoff?
+150
+
+```{r}
+library(rafalib)
+hc<-hclust(d)
+plot(hc, cex = 0.25)
+```
+
+```{r}
+library(rafalib)
+hc<-hclust(d)
+plot(hc, cex = 0.25)
+cl <- cutree(hc, h = 150)
+mds <- cmdscale(d)
+plot(mds[,1],mds[,2],col = leuk)
+legend("topleft",levels(leuk),col=seq_along(leuk),pch=1)
+```
+##Question 4
+3/3 points (graded)
+Using the cutoff height that generates 5 clusters in the previous problem, one cluster contains exactly 12 samples that are all from the same leukemia type.
+
+Which two leukemia types have all samples of that type in a unique cluster?
+Check two.
+
+ALL
+
+AML
+
+x CLL
+
+x CML
+
+NoL
+correct
+
+Which leukemia type is sometimes clustered with CML?
+Check one.
+
+AML
+
+NoL
+
+x CLL
+
+CML
+
+ALL
+correct
+
+Which leukemia type forms this cluster?
+Check one.
+
+ALL
+
+NoL
+
+CML
+
+AML
+
+x CLL
+
+## Question 5
+1 point possible (graded)
+Pick the 25 genes with the highest across sample variance using the rowMads() function from matrixStats:
+
+```{r}
+library(matrixStats)
+sds =rowMads(dat)
+ind = order(sds,decreasing=TRUE)[1:25]
+```
+
+Use heatmap.2() from gplots to make a heatmap showing the leuk type with column colors as well as column labels, and scaling the rows. (In the future, we will learn how to convert gene IDs, like "ENSG000…", into gene names.)
+
+Which of the following statements are TRUE about the heatmap?
+Select ALL that apply.
+
+x Over 20 of the genes with the highest across sample variance are upregulated in CML and NoL and downregulated in other leukemias.
+
+x The bottom 2 genes in the plot tend to be upregulated in ALL and CLL and downregulated in AML and CML.
+
+All of the CLL samples cluster together and are directly adjacent to each other in the heatmap.
+
+All of the AML samples cluster together and are directly adjacent to each other in the heatmap.
+
+x Based on these 25 genes, the type of leukemia with the closest expression pattern to normal (NoL) bone marrow is CML.
+
+```{r}
+library(gplots)
+library(matrixStats)
+library(RColorBrewer)
+sds =rowMads(dat)
+ind = order(sds,decreasing=TRUE)[1:50]
+cols<-palette(brewer.pal(7,"Dark2"))[as.fumeric(as.character(leuk))] # asigns a colour to each leukemia
+library(RColorBrewer)
+hmcol<-colorRampPalette(brewer.pal(9,"GnBu"))(100)
+heatmap.2(dat[ind,],labCol=leuk,
+          trace="none", # Rafa never uses this
+          ColSideColors=cols,
+          col=hmcol)
+```
+##Question 6
+2 points possible (graded)
+Suppose you want to design an algorithm that can predict whether a sample from the leukemia dataset is normal ("NoL") versus any type of leukemia. Start by creating a vector leukTF that is TRUE when a sample is normal and FALSE when a sample is leukemia:
+
+```{r}
+leukTF = leuk == "NoL"
+```
+
+Load the caret library and set the seed to 2. Use createFolds() on leuk2 to create 5 folds for cross-validation. Save the indices for these folds as idx.
+
+```{r}
+library(caret)
+set.seed(2)
+idx = createFolds(leukTF, k=5)
+
+normal_counts = sapply(1:length(idx), function(x){
+    fold_ind = idx[[x]]
+    sum(leukTF[fold_ind]==TRUE)
+})
+
+sum(normal_counts > 0)
+## [1] 5
+#Part B:
+
+sum(normal_counts == 3)
+# tells us elements of y folds - justs 1s and 0s
+```
+
+Before running any machine learning algorithms on these folds, it is best to ensure that each fold contains both normal and leukemia samples. Count the number of normal samples in each fold.
+
+A: How many folds have at least 1 normal sample?
+  5 
+ 
+B: How many folds have exactly 3 normal samples?
+  2 
+
+##Question 7
+1 point possible (graded)
+
+We are going to consider a smaller set of predictors by filtering genes using t-tests. Specifically, we will perform a t-test and select the  genes with the smallest p-values.
+
+Let m = 3. Leave out the first fold, idx[[1]], and perform rowttests() from the genefilter library on the remaining samples. Find the row numbers of the 3 genes with the lowest p-values and save these as gene_ind.
+
+Which of these rows does not represent one of the three genes with the lowest p-values when omitting the first fold, stored in gene_ind?
+
+```{r}
+library(class)
+library(genefilter)
+m = 3
+# define fold and find top m genes in fold
+fold_ind = idx[[1]]
+pvals = rowttests(dat[,-fold_ind],factor(leukTF[-fold_ind]))$p.val
+gene_ind = order(pvals)[1:m]
+gene_ind
+```
+
+##Question 8
+1 point possible (graded)
+Separate dat into a test set consisting of samples in the first fold and a training set consisting of samples in all other folds. Keep only genes from gene_ind in these sets. (Your test set should be an 11x3 matrix and your training set should be a 49x3 matrix.)
+
+Train a kNN model and generate predictions for the test set using the knn function from the class library and k=5.
+
+How many errors does this model make on the test set for the first fold?
+```{r}
+# use gene_ind and fold_ind to define training and test sets and training classes
+train_set = t(dat[gene_ind, -fold_ind])
+test_set = t(dat[gene_ind, fold_ind])
+train_classes = leukTF[-fold_ind]
+
+# set k=number of nearest neighbors
+k = 5
+
+# run knn
+pred = knn(train_set, test_set, train_classes, k)
+
+# count the number of errors
+sum(pred!=leukTF[fold_ind])
+```
+
+##Question 9
+3 points possible (graded)
+Repeat the steps from questions 8 and 9 above for each of the 5 folds.
+
+A. What is the total number of errors across all 5 folds?
+```{r}
+library(class)
+library(genefilter)
+m=3
+k=5
+result = sapply(1:length(idx),function(x){
+    # define fold and find top m genes in fold
+    fold_ind = idx[[x]]
+    pvals = rowttests(dat[,-fold_ind],factor(leukTF[-fold_ind]))$p.val
+    gene_ind = order(pvals)[1:m]
+
+    # use gene_ind and fold_ind to define training and test sets and training classes
+    train_set = t(dat[gene_ind, -fold_ind])
+    test_set = t(dat[gene_ind, fold_ind])
+    train_classes = leukTF[-fold_ind]
+
+    # run knn
+    pred = knn(train_set, test_set, train_classes, k)
+
+    # count the number of errors
+    sum(pred!=leukTF[fold_ind])
+})
+
+sum(result)
+```
+B. What proportion of the 60 samples are classified incorrectly by this model?
+
+```{r}
+sum(result)/length(leukTF)
+```
+C. Accuracy is defined as 1 minus the error rate. What is the accuracy of this kNN model?
+
+```{r}
+1 - sum(result)/length(leukTF)
+```
+
