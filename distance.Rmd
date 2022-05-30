@@ -1,0 +1,84 @@
+---
+title: "Distance Exercises"
+author: "Izabela Silva"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Distance Exercises
+```{r}
+library(devtools)
+install_github("genomicsclass/tissuesGeneExpression")
+install_github("genomicsclass/GSE5859Subset")
+
+# The data represents RNA expression levels for seven tissues, each with several biological replicates. We call samples that we consider to be from the same population, such as liver tissue from different individuals, biological replicates:
+library(tibble)
+library(tissuesGeneExpression)
+
+data(tissuesGeneExpression)
+head(e)
+head(tissue)
+dist <- dist(t(e))
+```
+
+# How many biological replicates for hippocampus?
+```{r}
+dist[3,45]
+
+x<-e["210486_at",]
+y<-e["200805_at",]
+sqrt(crossprod(x-y))
+d = dist(t(e))
+length(d)
+str(tissue)
+str(e)
+table(tissue)
+```
+
+
+# What is the distance between samples 3 and 45?
+```{r}
+x<-e[,3]
+y<-e[,45]
+```
+
+# a
+```{r}
+sqrt(sum((x-y)^2))
+```
+
+# b
+```{r}
+sqrt(crossprod(x-y))
+
+```
+
+# c
+```{r}
+d<-dist(t(e))
+as.matrix(d)[3,45]
+as.matrix(d)[45,3]
+```
+
+What is the distance between gene 210486_at and 200805_at
+
+```{r}
+x<-e["210486_at",]
+y<-e["200805_at",]
+sqrt(crossprod(x-y))
+```
+If I run the command (don't run it!) d = as.matrix(dist( e)) how many cells does d have?
+
+```{r}
+nrow(e)^2
+```
+
+How many distances are stored in d? (Hint: What is the length of d)?
+
+```{r}
+d = dist(t(e))
+num<-(nrow(as.matrix(d))^2-nrow(as.matrix(d)))/2
+num
+```
+
+length(d) # does the same!
